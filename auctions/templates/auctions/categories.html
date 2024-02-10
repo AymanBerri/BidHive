@@ -1,0 +1,21 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2>Categories</h2>
+    <div class="mb-5"></div>
+
+    <div class="container ">
+        <div class="row ">
+            <div class="col-md-12 ">
+                <ul class="list-group">
+                    {% for category in categories %}
+                            <!-- we print only categories with at least one item -->
+                            <li class="list-group-item">
+                                <a href="{% url 'category_page' category.type %}">{{ category.type }}:</a> {{ category.description }}
+                            </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+{% endblock %}

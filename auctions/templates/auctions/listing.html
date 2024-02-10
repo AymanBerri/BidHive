@@ -1,0 +1,115 @@
+{% extends "auctions/layout.html" %}
+{% load static %}
+{% block body %}
+    <h2 class="mb-5" >{{ listing.title }}</h2>
+
+
+    <div class="container">
+        
+        <div class="row">
+            <div class="col-md-4">
+                <img src="{{ listing.image }}" alt="{{ listing.title }}" class="img-fluid">
+            </div>
+            <div class="col-md-8">
+                
+                <p class="mt-5" >{{ listing.description }}</p>
+                <p class="mt-5">Current Bid: ${{ bid_price }}</p>
+                <p>Categories:
+                    {% for category in listing.categories.all %}
+                        {{category.type}}{% if not forloop.last %}, {% endif %}  
+                    {% endfor %}
+                </p>
+                <p>Listed on: {{ listing.date_posted }}</p>
+
+                {% if user.is_authenticated %}
+                    <!-- WATCHLIST FORM -->
+                    <form action="{% url 'listing' listing.pk %}" method="post">
+                        {% csrf_token %}
+                            <input type="submit" class="btn btn-primary mb-3" name="watchlist_btn" value="{{ is_watchlisted }}" id="">
+                    </form>
+
+                    <!-- if the listing is up for bidding, users can bid and owner can close bidding -->
+                    {% if listing.open_for_bid %}
+                        <!-- OWNER CLOSE BIDDING FORM -->  
+                        {% if request.user == listing.owner%} 
+                            <form action='{% url "listing" listing.pk %}' method="post">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success" name="close_bid">Close Bids</button>
+                            </form>
+                        {% else %}
+                        <!-- nothing yet -->
+                        {% endif %}
+
+                        <br>
+
+                        <!-- BIDDING FORM -->
+                        <form action="{% url 'listing' listing.pk %}" method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="new_bid">Place Bid:</label>
+
+                                <div style="color: red;">{{ new_bid_error }}</div>
+                                
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" name="new_bid" class="form-control" id="new_bid" placeholder="0.00" step="0.01" required>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Place Bid</button>
+                        </form>
+                    {% else %}
+                        <!-- here we notify the winner that he won the auction or the users that the listing is no longer active -->
+                        {% if request.user == listing.bidding_winner %}
+                        <!-- i inlined it cuz it wont work for some reason :( -->
+                        <p class="congrat_msg" style="background-color: #f2f2f2; padding: 10px; border-radius: 5px; font-size: 18px;">
+                            Congratulations {{ listing.bidding_winner }}! 🎉 You won the auction for "{{ listing.title }}"! 🥳 Your bid was the highest, and you did it! 🏆 Enjoy your new item, and thank you for being part of our auction! 🙌 If you need anything, just let us know. Happy bidding! 💫🛍️
+                        </p>
+                        {% else %}
+                            <i style="color: gray;">Bidding on this item is no longer available.</i>
+                        {% endif %}
+                    {% endif %}
+            
+                {% else %}
+                        <i>You must be logged in to bid on or watchlist this item. <a href="{% url 'login' %}">Log In?</a></i>
+                {% endif %}
+                
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Comments Section -->
+    <div class="container mt-5" id="comments-section">
+        <h3>Comments</h3>
+        <hr>
+        {% if not listing.listing_comments.all %}
+            <p>No comments yet.</p>
+        {% else %}
+            {% for comment in listing.listing_comments.all %}
+                <div class="card mb-3">
+                    <div class="card-header">
+                        <strong>{{ comment.author }}</strong> commented on {{ comment.date_posted }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ comment.content }}</p>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+
+        <!-- Add Comment Form -->
+        {% if user.is_authenticated %}
+            <form action="{% url 'listing' listing.pk %}" method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="comment_content">Add your comment:</label>
+                    <textarea class="form-control" id="comment_content" name="comment_content" rows="3" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Submit Comment</button>
+            </form>
+        {% else %}
+            <i>You must be logged in to add comments. <a href="{% url 'login' %}">Log In?</a></i>
+        {% endif %}
+    </div>
+{% endblock %}

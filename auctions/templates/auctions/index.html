@@ -1,0 +1,39 @@
+{% extends "auctions/layout.html" %}
+
+{% block body %}
+    <h2 >{{ page_title }}</h2>
+    
+
+    {% for listing in listings %}
+    <div class="row g-0 bg-body-secondary position-relative" >
+        <div class="col-md-3"></div>
+        <div class="col-md-2 mb-md-2 p-md-4">
+            <div class="ratio ratio-3x2">
+                <img src="{{listing.image}}" class="h-50 img-fluid" alt="{{listing.image}}">
+            </div>
+        </div>
+
+        <div class="col-md-4 p-4 ps-md-0">
+            <h5 class="mt-0 mb-4">{{listing.title}}</h5>
+            <p class="listing-description">{{ listing.description }}</p>
+            {% if listing.open_for_bid %}
+
+              <!-- if listing has bids, display last one, else display start_price -->
+              {% if listing.bids.last.bid %}
+                <p class="listing-price">Price: ${{ listing.bids.last.bid }}</p>
+              {% else %}
+                <p class="listing-price">Price: ${{ listing.start_price}}</p>
+              {% endif %}
+
+            {% else %}
+              <i style="color: gray;">Bidding on this item is no longer available.</i>
+            {% endif %}
+
+
+          <a href="{% url 'listing' listing.pk %}" class="stretched-link"></a>
+        </div>
+      </div>
+
+    {% endfor %}
+
+{% endblock %}
